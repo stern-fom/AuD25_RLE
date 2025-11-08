@@ -48,8 +48,44 @@ def encode_sequence(current_char: bytes, current_count: int, escape: bytes, outp
         output_list.append(current_char * current_count)
 
 
-def decode(value: str) -> str:
-    pass
+def decode(value: bytes, escape=b"Q") -> bytes:
+    # Zustandsvariable: 0 = IDLE (normaler Modus), 1 = ESCAPE (Escape-Zeichen erkannt), 2 = COUNT (Anzahl erkannt)
+    state = 0
+    # Variable zur Speicherung der Anzahl bei RLE-Sequenzen
+    count = 0
+    # Liste zur Sammlung der Ausgabezeichen
+    output_list = []
+    # Jedes Byte der Eingabe wird einzeln verarbeitet
+    for char in value:
+        if state == 0:  # IDLE: Normaler Modus
+            # Wenn das aktuelle Zeichen kein Escape-Zeichen ist, wird es direkt zur Ausgabe hinzugefügt
+            if char != escape[0]:
+                output_list.append(bytes([char]))
+            else:
+                # Wenn das Escape-Zeichen erkannt wird, wechsel in den ESCAPE-Zustand
+                state = 1
+        elif state == 1:  # ESCAPE: Escape-Zeichen wurde erkannt
+            # Wenn das nächste Zeichen ein "@" ist, handelt es sich um den Sonderfall: Escape-Zeichen ausgeben
+            if bytes([char]) == b"@":
+                output_list.append(escape)
+                state = 0  # Zurück zum IDLE-Zustand
+            else:
+                # Ansonsten wird das nächste Zeichen als Anzahl interpretiert (A=1, B=2, ...)
+                count = char - ord("A") + 1
+                state = 2  # Wechsel in den COUNT-Zustand
+        elif state == 2:  # COUNT: Anzahl wurde erkannt
+            # Das aktuelle Zeichen wird entsprechend der Anzahl zur Ausgabe hinzugefügt
+            output_list.append(bytes([char]) * count)
+            count = 0  # Anzahl zurücksetzen
+            state = 0  # Zurück zum IDLE-Zustand
+        else:
+            # Fehlerfall: Unbekannter Zustand
+            print("ERROR")
+    # Prüfung auf unvollständige Sequenz am Ende der Eingabe
+    if state != 0:
+        print("ERROR: Unvollständige Sequenz")
+    # Zusammenfügen der Ausgabe-Liste zu einem Bytes-Objekt und Rückgabe
+    return b"".join(output_list)
 
 if __name__ == '__main__':
     inp = b'AAAABBBAABBBBBCCCCCCCCABCQAAA'
@@ -64,3 +100,14 @@ if __name__ == '__main__':
     print(inp)
     print(out)
     print(b"QZAQDA" == out)
+
+    inp = b"QDABBBAAQEBQHCABCQ@AAA"
+    out = decode(inp)
+    print(inp)
+    print(out)
+    print(b'AAAABBBAABBBBBCCCCCCCCABCQAAA' == out)
+
+    inp = b"QZAQDA"
+    out = decode(inp)
+    print(inp)
+    print(out)

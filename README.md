@@ -24,3 +24,20 @@ Das Projekt benötigt keine speziellen Abhängigkeiten und kann direkt mit Pytho
 
 ```bash
 python main.py
+```
+
+## Code
+### Decoding
+
+```mermaid
+stateDiagram-v2
+    direction LR
+
+    [*] --> IDLE
+
+    IDLE --> ESCAPE: Escape + keine Ausgabe
+    ESCAPE --> IDLE: Sonderfall + Ausgabe
+    ESCAPE --> ANZ: Anzahl-Zeichen + keine Ausgabe
+    ANZ --> IDLE: Zeichen + Ausgabe
+    IDLE --> IDLE: normales Zeichen + Ausgabe
+```

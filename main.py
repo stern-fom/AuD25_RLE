@@ -111,3 +111,4 @@ if __name__ == '__main__':
     out = decode(inp)
     print(inp)
     print(out)
+    print(b'A'*30 == out)

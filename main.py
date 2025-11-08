@@ -112,3 +112,16 @@ if __name__ == '__main__':
     print(inp)
     print(out)
     print(b'A'*30 == out)
+
+    with open("hallo_256.bmp", "rb") as f:
+        img = f.read()
+
+    out = encode(img)
+    with open("hallo_256.arl", "wb") as f:
+        f.write(out)
+
+    with open("hallo_256.arl", "rb") as f:
+        rle_img = f.read()
+    out = decode(rle_img)
+    with open("hallo_256_restored.bmp", "wb") as f:
+        f.write(out)
